@@ -19,3 +19,9 @@ variable "zone" {
   description = "GCP zone (within region)"
   default     = "europe-west4-a"
 }
+
+variable "db_password" {
+  description = "Password for appuser in Postgres"
+  type        = string
+  sensitive   = true
+}
