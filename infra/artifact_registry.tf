@@ -7,9 +7,9 @@ resource "google_artifact_registry_repository" "backend_repo" {
   format        = "DOCKER"
 }
 
-# IAM permission for GKE to pull images
+# Grant the Artifact Registry Reader role to the default service account.
 resource "google_project_iam_member" "gke_artifact_reader" {
   project = var.project_id
   role    = "roles/artifactregistry.reader"
-  member  = "serviceAccount:service-${data.google_project.project.number}@compute.googleapis.com"
+  member  = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
