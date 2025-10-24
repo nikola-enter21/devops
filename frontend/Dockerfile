@@ -1,30 +1,21 @@
-ARG NODE_VERSION=22
+FROM node:lts-alpine AS base
 
-FROM node:${NODE_VERSION}-alpine AS deps
+FROM base AS deps
 WORKDIR /app
-ENV CI=true
-RUN apk add --no-cache libc6-compat
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 RUN npm ci
 
-FROM node:${NODE_VERSION}-alpine AS build
+FROM base AS builder
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN apk add --no-cache libc6-compat
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:${NODE_VERSION}-alpine AS run
+FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN apk add --no-cache libc6-compat
-
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
-
-USER node
-
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+EXPOSE 3000
 CMD ["node", "server.js"]
