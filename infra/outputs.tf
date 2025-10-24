@@ -15,7 +15,7 @@ output "cloud_sql_private_ip" {
 
 output "cloud_sql_database_name" {
   description = "The name of the database created in the instance"
-  value       = google_sql_database.app_db.name
+  value       = google_sql_database.app.name
 }
 
 output "cloud_sql_user_name" {
