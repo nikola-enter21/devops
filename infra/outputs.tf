@@ -22,3 +22,7 @@ output "cloud_sql_user_name" {
   description = "The database user created"
   value       = google_sql_user.app_user.name
 }
+
+output "default_account" {
+  value = data.google_compute_default_service_account.default.email
+}
