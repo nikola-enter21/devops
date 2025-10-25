@@ -3,13 +3,14 @@
 # GKE Cluster with IP Allocation
 resource "google_container_cluster" "primary" {
   name     = "${var.name_prefix}-gke"
-  location = var.region
+  location = var.zone
 
   remove_default_node_pool = true
   initial_node_count       = 1
 
-  network    = google_compute_network.vpc_network.id
-  subnetwork = google_compute_subnetwork.gke_subnet.id
+  network             = google_compute_network.vpc_network.id
+  subnetwork          = google_compute_subnetwork.gke_subnet.id
+  deletion_protection = false
 
   ip_allocation_policy {
     cluster_secondary_range_name  = "pods"
@@ -30,9 +31,11 @@ resource "google_container_cluster" "primary" {
 # GKE Node Pool
 resource "google_container_node_pool" "primary_nodes" {
   name       = "${var.name_prefix}-nodepool"
-  location   = var.region
+  location   = var.zone
   cluster    = google_container_cluster.primary.name
   node_count = 1
+
+  depends_on = [google_container_cluster.primary]
 
   node_config {
     machine_type = "e2-medium"
