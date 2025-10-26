@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 type Status = "loading" | "online" | "offline";
+//
 
 export default function Home() {
   const [apiStatus, setApiStatus] = useState<Status>("loading");
