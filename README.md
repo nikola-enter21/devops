@@ -79,7 +79,7 @@ The backend provides a simple REST API with the following endpoints:
 Run locally using Docker Compose:
 
 ```bash
-docker-compose up --build
+docker compose -f docker-compose.local.yaml up --build
 ```
 
 This starts:
