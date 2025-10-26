@@ -167,7 +167,6 @@ kubectl apply -f k8s/users-ingress.yml
 ### Future Improvements
 
 - Automate Kubernetes deployment
-- Store Kubernetes secrets securely
 
 ---
 
