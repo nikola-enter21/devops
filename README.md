@@ -141,8 +141,8 @@ kubectl apply -f k8s/users-ingress.yml
 - **A-Record** maps `api.users.gopherify.com` to the **static external IP** (`35.244.143.113`) reserved in Google Cloud.  
   This IP is attached to the **GKE Ingress Load Balancer** that Kubernetes creates automatically.
 
-- The **ManagedCertificate** provisions and attaches a valid **TLS certificate** for `api.users.gopherify.com`, enabling encrypted HTTPS traffic.  
-  Once validated, Google’s global load balancer terminates HTTPS at the edge.
+- The **ManagedCertificate** automatically provisions a valid TLS certificate for `api.users.gopherify.com`, enabling secure HTTPS connections.
+  After validation, Google’s global load balancer handles HTTPS traffic and forwards decrypted requests to the backend service inside GKE.
 
 - The **Ingress (GCE)** accepts traffic on ports **80 (HTTP)** and **443 (HTTPS)** specifically for `api.users.gopherify.com`.  
   Inside the cluster, the Ingress forwards those requests to `users-service:80`, which then routes internally to backend Pods running on port `3000`.
