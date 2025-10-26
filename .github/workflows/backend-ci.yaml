@@ -1,0 +1,50 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod verify
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: backend
+          version: latest
+
+      - name: Format check
+        run: |
+          if [ "$(gofmt -l . | tee /dev/stderr | wc -l)" -ne 0 ]; then
+            echo "Code is not formatted! Run gofmt." && exit 1
+          fi
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Gosec (Security Scan)
+        uses: securego/gosec@master
+        with:
+          args: ./...
+
+      - name: Build binary
+        run: go build -o app
