@@ -14,7 +14,7 @@ Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GK
 
 ### Description
 
-The frontend serves as a lightweight dashboard for monitoring backend and database health.
+Lightweight dashboard for monitoring backend and database health.
 
 - `/healthz` for backend availability
 - `/checkDatabase` for database connectivity
@@ -166,7 +166,7 @@ kubectl apply -f k8s/users-ingress.yml
 
 ### Future Improvements
 
-- Add CI/CD
+- Automate Kubernetes deployment
 - Store secrets securely
 
 ---
