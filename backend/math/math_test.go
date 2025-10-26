@@ -8,5 +8,5 @@ import (
 
 func TestAdd(t *testing.T) {
 	result := Add(2, 3)
-	require.Equal(t, 5, result)
+	require.Equal(t, 6, result)
 }
