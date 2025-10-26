@@ -151,8 +151,7 @@ kubectl apply -f k8s/users-ingress.yml
 
 ### Security
 
-- Database credentials are currently **hardcoded in the Deployment manifest** for simplicity.  
-  In a production environment, these must be stored in a **Kubernetes Secret** or **Google Secret Manager** instead.
+- Using Kubernetes Secrets to securely store sensitive configuration values such as database credentials.
 
 - GKE communicates with **Cloud SQL over a private VPC IP**, ensuring no external exposure.
 
