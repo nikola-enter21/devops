@@ -43,7 +43,7 @@ func main() {
 		db, err := sql.Open("postgres", connStr)
 		if err != nil {
 			log.Println("DB connection open error:", err)
-			return c.Status(501).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 		}
 		defer db.Close()
 

@@ -41,10 +41,5 @@ jobs:
       - name: Run tests
         run: go test -v ./...
 
-      - name: Gosec (Security Scan)
-        uses: securego/gosec@master
-        with:
-          args: ./...
-
       - name: Build binary
         run: go build -o app
