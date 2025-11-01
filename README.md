@@ -46,7 +46,7 @@ Runs locally on http://localhost:3000
 - PostgreSQL
 - Docker and Kubernetes
 - Terraform and GCP Artifact Registry
-- Gateway API (modern replacement for Kubernetes Ingress)
+- Gateway API (modern replacement for Kubernetes Ingress): https://docs.cloud.google.com/kubernetes-engine/docs/concepts/gateway-api
 
 ### Description
 
