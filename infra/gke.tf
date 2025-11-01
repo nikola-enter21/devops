@@ -1,5 +1,3 @@
-
-
 # GKE Cluster with IP Allocation
 resource "google_container_cluster" "primary" {
   name     = "${var.name_prefix}-gke"
