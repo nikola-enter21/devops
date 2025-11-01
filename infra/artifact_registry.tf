@@ -11,5 +11,5 @@ resource "google_artifact_registry_repository" "backend_repo" {
 resource "google_project_iam_member" "gke_artifact_reader" {
   project = var.project_id
   role    = "roles/artifactregistry.reader"
-  member  = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  member  = "serviceAccount:${google_service_account.gke_nodes.email}"
 }
