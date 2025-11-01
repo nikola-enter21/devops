@@ -1,0 +1,24 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: gopherify-gateway
+  namespace: default
+spec:
+  gatewayClassName: gke-l7-global-external-managed
+
+  addresses:
+    - type: NamedAddress
+      value: backend-ip
+
+  listeners:
+    - name: https
+      hostname: api.users.gopherify.com
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        options:
+          networking.gke.io/pre-shared-certs: mcrt-22257303-85f3-40d7-8213-bd8512f5c5ba
+      allowedRoutes:
+        namespaces:
+          from: Same

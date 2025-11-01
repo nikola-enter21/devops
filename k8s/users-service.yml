@@ -2,8 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: users-service
-  annotations:
-    beta.cloud.google.com/backend-config: '{"default":"users-backendconfig"}'
+  namespace: default
 spec:
   type: ClusterIP
   selector:
