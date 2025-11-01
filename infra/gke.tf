@@ -26,9 +26,26 @@ resource "google_container_cluster" "primary" {
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
   }
+
+  gateway_api_config {
+    channel = "CHANNEL_STANDARD"
+  }
+
+  datapath_provider = "ADVANCED_DATAPATH"
+
+  release_channel {
+    channel = "REGULAR"
+  }
+
+  monitoring_config {
+    enable_components = ["SYSTEM_COMPONENTS", "APISERVER", "SCHEDULER", "CONTROLLER_MANAGER"]
+  }
+
+  logging_config {
+    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+  }
 }
 
-# GKE Node Pool
 resource "google_container_node_pool" "primary_nodes" {
   name       = "${var.name_prefix}-nodepool"
   location   = var.zone
@@ -38,11 +55,22 @@ resource "google_container_node_pool" "primary_nodes" {
   depends_on = [google_container_cluster.primary]
 
   node_config {
-    machine_type = "e2-medium"
-    disk_type    = "pd-balanced"
-    disk_size_gb = 50
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
+    machine_type    = "e2-medium"
+    disk_type       = "pd-balanced"
+    disk_size_gb    = 50
+    service_account = google_service_account.gke_nodes.email
+    oauth_scopes    = ["https://www.googleapis.com/auth/cloud-platform"]
+
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
+    }
+
+    tags = ["gke-node"]
   }
+}
+
+resource "google_service_account" "gke_nodes" {
+  account_id   = "${var.name_prefix}-nodes"
+  display_name = "GKE Node Service Account"
 }
