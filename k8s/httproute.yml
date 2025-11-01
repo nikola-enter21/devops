@@ -1,0 +1,18 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: users-route
+  namespace: default
+spec:
+  parentRefs:
+    - name: gopherify-gateway
+  hostnames:
+    - "api.users.gopherify.com"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: users-service
+          port: 80
