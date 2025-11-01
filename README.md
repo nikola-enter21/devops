@@ -46,6 +46,7 @@ Runs locally on http://localhost:3000
 - PostgreSQL
 - Docker and Kubernetes
 - Terraform and GCP Artifact Registry
+- Gateway API (modern replacement for Kubernetes Ingress)
 
 ### Description
 
@@ -96,80 +97,69 @@ curl http://localhost:8080/checkDatabase
 
 ---
 
-### Deployment Flow
+## Deployment
 
-There is **no automatic deployment pipeline configured yet**.  
-Before running any deployment commands, the following conditions must be met:
+There is currently no automatic CI/CD pipeline. Deployments are manual and require the following preconditions:
 
-- You are **logged in with gcloud**.
-- You are **connected to the correct GKE cluster**.
-- You are **authenticated for the GKE Artifact Registry**.
-- GCP infrastructure has been **provisioned with OpenTofu**.
-- Docker images have been **built and pushed manually** to Artifact Registry.
-- Kubernetes manifests will be **applied manually** to GKE.
+- Logged in with `gcloud`.
+- Connected to the correct GKE cluster.
+- Authenticated for GKE Artifact Registry.
+- Infrastructure provisioned via OpenTofu (Terraform).
+- Docker images built and pushed manually to Artifact Registry.
+- Kubernetes manifests applied manually.
 
-1. Build and push backend image:
+1. Build and push the backend image:
 
 ```bash
 docker build -t europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app:latest ./backend
 docker push europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app:latest
 ```
 
-2. Deploy to GKE manually:
+2. Apply Kubernetes manifests:
 
 ```bash
-kubectl apply -f k8s/users-deployment.yml
-kubectl apply -f k8s/users-service.yml
-kubectl apply -f k8s/users-backendconfig.yml
-kubectl apply -f k8s/managed-cert.yml
-kubectl apply -f k8s/users-ingress.yml
+kubectl apply -f k8s/
 ```
 
 ---
 
-### GKE and Cloud SQL Setup
+## GKE and Cloud SQL Setup
 
-- Private VPC (10.0.0.0/16)
-- GKE cluster with Workload Identity (Google Cloud’s modern, secure way for Kubernetes Pods to access Google Cloud resources (like Cloud SQL, Pub/Sub, Storage, etc.) without using service account keys)
-- Cloud SQL (PostgreSQL 15) with private IP only  
-  Accessible from GKE over 10.41.0.3
-- VPC peering via servicenetworking.googleapis.com
-- HTTPS Load Balancer with managed TLS certificate
+- Private VPC (`10.0.0.0/16`)
+- GKE cluster with Workload Identity
+- Cloud SQL (PostgreSQL 15) with private IP only, accessible from GKE via `10.41.0.3`
+- VPC peering through `servicenetworking.googleapis.com`
+- HTTPS Gateway (Google Cloud Load Balancer) with Google-managed TLS
 
 ### Networking and HTTPS Flow
 
-- **A-Record** maps `api.users.gopherify.com` to the **static external IP** (`35.244.143.113`) reserved in Google Cloud.  
-  This IP is attached to the **GKE Ingress Load Balancer** that Kubernetes creates automatically.
+- The domain `api.users.gopherify.com` maps to a **reserved static IP** (`35.244.143.113`) in Google Cloud.
+- This IP is bound to a **Gateway** resource configured with `gatewayClassName: gke-l7-global-external-managed`.
+- TLS termination uses a **Google-managed certificate** attached via `networking.gke.io/pre-shared-certs`.
+- The Gateway forwards HTTPS traffic through an `HTTPRoute` to the backend `Service`, which exposes Pods on port `3000`.
 
-- The **ManagedCertificate** automatically provisions a valid TLS certificate for `api.users.gopherify.com`, enabling secure HTTPS connections.
-  After validation, Google’s global load balancer handles HTTPS traffic and forwards decrypted requests to the backend service inside GKE.
-
-- The **Ingress (GCE)** accepts traffic on ports **80 (HTTP)** and **443 (HTTPS)** specifically for `api.users.gopherify.com`.  
-  Inside the cluster, the Ingress forwards those requests to `users-service:80`, which then routes internally to backend Pods running on port `3000`.
+This replaces the legacy Kubernetes Ingress and ManagedCertificate workflow with the new **Gateway API**, offering more flexibility, scalability, and control.
 
 ---
 
-### Security
+## Security
 
-- Using Kubernetes Secrets to securely store sensitive configuration values such as database credentials.
-
-- GKE communicates with **Cloud SQL over a private VPC IP**, ensuring no external exposure.
-
-- The **Cloud SQL instance** is private-only --- it cannot be accessed from the public Internet.
-
-- **HTTPS** traffic is managed entirely by a **Google-managed TLS certificate** attached to the global load balancer.
-
-- **Workload Identity** is enabled, replacing legacy service account keys for secure GCP service authentication.
+- All sensitive environment variables are stored in **Kubernetes Secrets**.
+- GKE communicates with **Cloud SQL over private IP** (no public access).
+- **TLS termination** is handled by Google Cloud using a **managed certificate** for `api.users.gopherify.com`.
+- **Workload Identity** is enabled for secure service-to-service communication without key files.
 
 ---
 
-### Future Improvements
+## Future Improvements
 
-- Automate Kubernetes deployment
+- Automate Kubernetes deployments.
+- Introduce Horizontal Pod Autoscaling.
+- Add monitoring and observability.
 
 ---
 
-### Summary
+## Summary
 
 | Component  | Status               | Notes                     |
 | ---------- | -------------------- | ------------------------- |
@@ -178,3 +168,4 @@ kubectl apply -f k8s/users-ingress.yml
 | Database   | Cloud SQL Private IP | Connected successfully    |
 | HTTPS      | Managed by GCP       | Active certificate        |
 | Networking | VPC Peering          | Secure private connection |
+| Gateway    | Global LB on GKE     | Using static IP + TLS     |
