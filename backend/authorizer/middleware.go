@@ -77,11 +77,11 @@ func StreamServerInterceptor(auth Authorizer) grpc.StreamServerInterceptor {
 func extractRole(ctx context.Context) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return ""
+		return "public"
 	}
 	values := md.Get("x-user-role")
 	if len(values) == 0 {
-		return ""
+		return "public"
 	}
 	return values[0]
 }

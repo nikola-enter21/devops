@@ -6,7 +6,7 @@
     "user.v1.UserService/Register": "api.user.v1.register"
   },
   "roles": {
-    "guest": {
+    "public": {
       "permissions": [
         "api.user.v1.healthz",
         "api.user.v1.checkDatabase",
