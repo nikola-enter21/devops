@@ -1,6 +1,6 @@
 # DevOps FMI Project
 
-Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GKE), OpenTofu (Terraform).
+Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GKE), OpenTofu (Terraform), Open Policy Agent (OPA).
 
 ---
 
@@ -16,10 +16,10 @@ Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GK
 
 Lightweight dashboard for monitoring backend and database health.
 
-- `/healthz` for backend availability
-- `/checkDatabase` for database connectivity
+- `/api/v1/healthz` → backend availability
+- `/api/v1/checkDatabase` → database connectivity
 
-Local development:
+#### Local development
 
 ```bash
 cd frontend
@@ -33,7 +33,7 @@ Environment variable:
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
 ```
 
-Runs locally on http://localhost:3000
+Runs locally at [http://localhost:3000](http://localhost:3000)
 
 ---
 
@@ -41,23 +41,26 @@ Runs locally on http://localhost:3000
 
 ### Tech Stack
 
-- Go 1.24
-- Fiber v2
-- PostgreSQL
-- Docker and Kubernetes
+- Go 1.25.3
+- gRPC + gRPC-Gateway v2
+- Open Policy Agent (OPA)
+- PostgreSQL (Cloud SQL Private IP)
+- Docker and Kubernetes (GKE)
 - Terraform and GCP Artifact Registry
 - Gateway API (modern replacement for Kubernetes Ingress): https://docs.cloud.google.com/kubernetes-engine/docs/concepts/gateway-api
 
+---
+
 ### Description
 
-The backend provides a simple REST API with the following endpoints:
+The backend now exposes both **gRPC** and **REST** endpoints using **gRPC-Gateway**, secured with **OPA Rego policies** for fine-grained access control.
 
-| Endpoint         | Method | Description                       |
-| ---------------- | ------ | --------------------------------- |
-| `/healthz`       | GET    | Basic health check                |
-| `/checkDatabase` | GET    | Verifies connection to PostgreSQL |
-| `/login`         | POST   | Simulated login route             |
-| `/register`      | POST   | Simulated user registration       |
+| Endpoint                | Method | Description                       |
+| ----------------------- | ------ | --------------------------------- |
+| `/api/v1/healthz`       | GET    | Basic health check                |
+| `/api/v1/checkDatabase` | GET    | Verifies connection to PostgreSQL |
+| `/api/v1/login`         | POST   | Simulated login route             |
+| `/api/v1/register`      | POST   | Simulated user registration       |
 
 ---
 
@@ -65,7 +68,8 @@ The backend provides a simple REST API with the following endpoints:
 
 | Variable          | Description          | Example                               |
 | ----------------- | -------------------- | ------------------------------------- |
-| `PORT`            | Server port          | `8080`                                |
+| `HTTP_PORT`       | HTTP Gateway port    | `8080`                                |
+| `GRPC_PORT`       | gRPC Server port     | `8079`                                |
 | `ALLOWED_ORIGINS` | Allowed CORS origin  | `https://devops-chi-khaki.vercel.app` |
 | `DB_HOST`         | Cloud SQL private IP | `postgres`                            |
 | `DB_PORT`         | PostgreSQL port      | `5432`                                |
@@ -85,30 +89,30 @@ docker compose -f docker-compose.local.yaml up --build
 
 This starts:
 
-- Backend
+- gRPC + Gateway backend
 - PostgreSQL
 
 Test endpoints:
 
 ```bash
-curl http://localhost:8080/healthz
-curl http://localhost:8080/checkDatabase
+curl http://localhost:8080/api/v1/healthz
+curl http://localhost:8080/api/v1/checkDatabase
 ```
 
 ---
 
 ## Deployment
 
-There is currently no automatic CI/CD pipeline. Deployments are manual and require the following preconditions:
-
-- Logged in with `gcloud`.
-- Connected to the correct GKE cluster.
-- Authenticated for GKE Artifact Registry.
-- Infrastructure provisioned via OpenTofu (Terraform).
-- Docker images built and pushed manually to Artifact Registry.
-- Kubernetes manifests applied manually.
+Manual deployment (CI/CD not yet automated).
 
 1. Build and push the backend image:
+
+- Logged in with `gcloud`
+- Connected to correct GKE cluster
+- Authenticated for Artifact Registry
+- Infrastructure provisioned with OpenTofu
+- Docker image built + pushed manually
+- Kubernetes manifests applied manually
 
 ```bash
 docker build -t europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app:latest ./backend
@@ -136,7 +140,7 @@ kubectl apply -f k8s/
 - The domain `api.users.gopherify.com` maps to a **reserved static IP** (`35.244.143.113`) in Google Cloud.
 - This IP is bound to a **Gateway** resource configured with `gatewayClassName: gke-l7-global-external-managed`.
 - TLS termination uses a **Google-managed certificate** attached via `networking.gke.io/pre-shared-certs`.
-- The Gateway forwards HTTPS traffic through an `HTTPRoute` to the backend `Service`, which exposes Pods on port `3000`.
+- The Gateway forwards HTTPS traffic through an `HTTPRoute` to the backend `Service`, which exposes Pods on port `8080`.
 
 This replaces the legacy Kubernetes Ingress and ManagedCertificate workflow with the new **Gateway API**, offering more flexibility, scalability, and control.
 
@@ -144,6 +148,7 @@ This replaces the legacy Kubernetes Ingress and ManagedCertificate workflow with
 
 ## Security
 
+- **OPA**: fine-grained RBAC via Rego policies
 - All sensitive environment variables are stored in **Kubernetes Secrets**.
 - GKE communicates with **Cloud SQL over private IP** (no public access).
 - **TLS termination** is handled by Google Cloud using a **managed certificate** for `api.users.gopherify.com`.
@@ -153,9 +158,11 @@ This replaces the legacy Kubernetes Ingress and ManagedCertificate workflow with
 
 ## Future Improvements
 
-- Automate Kubernetes deployments.
-- Introduce Horizontal Pod Autoscaling.
-- Add monitoring and observability.
+- Automate Kubernetes deployments
+- Add **Horizontal Pod Autoscaling (HPA)**
+- Integrate **Ambient Service Mesh**
+- Deploy **ArgoCD for GitOps** automation
+- Extend **monitoring & observability**
 
 ---
 
