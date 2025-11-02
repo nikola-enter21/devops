@@ -59,7 +59,11 @@ func (s *UserServiceServer) CheckDatabase(ctx context.Context, _ *user.CheckData
 			DbStatus: err.Error(),
 		}, nil
 	}
-	defer db.Close()
+	defer func() {
+		if cerr := db.Close(); cerr != nil {
+			log.Errorw("failed to close DB connection", "error", cerr)
+		}
+	}()
 
 	if err := db.PingContext(ctx); err != nil {
 		log.Errorw("database unreachable", "error", err)
