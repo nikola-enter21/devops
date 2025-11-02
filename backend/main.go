@@ -1,87 +1,80 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	"log"
-	"os"
+	"net"
+	"os/signal"
+	"syscall"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	_ "github.com/lib/pq"
+	user "github.com/nikola-enter21/devops-fmi-course/api/gen/go/user/v1"
+	"github.com/nikola-enter21/devops-fmi-course/authorizer"
+	"github.com/nikola-enter21/devops-fmi-course/gateway"
+	"github.com/nikola-enter21/devops-fmi-course/logging"
+	"github.com/nikola-enter21/devops-fmi-course/service"
+	"google.golang.org/grpc"
 )
 
-func main() {
-	app := fiber.New()
+var (
+	log      = logging.MustNewLogger()
+	httpPort = getEnv("HTTP_PORT", "8080")
+	grpcPort = getEnv("GRPC_PORT", "8079")
+)
 
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     os.Getenv("ALLOWED_ORIGINS"),
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-		AllowCredentials: true,
-	}))
-
-	app.Use(logger.New())
-	app.Use(recover.New())
-
-	app.Get("/healthz", func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusOK)
-	})
-
-	app.Get("/checkDatabase", func(c *fiber.Ctx) error {
-		connStr := fmt.Sprintf(
-			"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			getEnv("DB_HOST", "postgres"),
-			getEnv("DB_PORT", "5432"),
-			getEnv("DB_USER", "postgres"),
-			getEnv("DB_PASSWORD", "postgres"),
-			getEnv("DB_NAME", "postgres"),
-		)
-
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			log.Println("DB connection open error:", err)
-			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-		}
-		defer db.Close()
-
-		if err := db.Ping(); err != nil {
-			log.Println("DB ping error:", err)
-			return c.Status(500).JSON(fiber.Map{
-				"status": "unreachable",
-				"error":  err.Error(),
-			})
-		}
-
-		log.Println("Connected to Postgres successfully")
-		return c.JSON(fiber.Map{
-			"status":  "ok",
-			"message": "Connected to database",
-		})
-	})
-
-	app.Post("/login", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Login successful",
-		})
-	})
-
-	app.Post("/register", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "User registered",
-		})
-	})
-
-	port := getEnv("PORT", "8080")
-	log.Printf("Server running on http://localhost:%s", port)
-	log.Fatal(app.Listen(":" + port))
+type Server struct {
+	Authorizer authorizer.Authorizer
 }
 
-func getEnv(key, fallback string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
+func main() {
+	auth, err := authorizer.NewEmbedded()
+	if err != nil {
+		log.Fatalf("failed to initialize OPA authorizer: %v", err)
 	}
-	return fallback
+
+	s := &Server{Authorizer: auth}
+	s.Serve()
+}
+
+func (s *Server) Serve() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(authorizer.UnaryServerInterceptor(s.Authorizer)),
+		grpc.StreamInterceptor(authorizer.StreamServerInterceptor(s.Authorizer)),
+	)
+
+	userSvc := &service.UserServiceServer{}
+	user.RegisterUserServiceServer(grpcServer, userSvc)
+
+	// Start the HTTP gateway in a separate goroutine
+	gatewayDone := make(chan struct{})
+	go func() {
+		gateway.Serve(ctx, ":"+httpPort, fmt.Sprintf("localhost%s", ":"+grpcPort))
+		close(gatewayDone)
+	}()
+
+	lis, err := net.Listen("tcp", ":"+grpcPort)
+	if err != nil {
+		log.Fatalf("failed to listen", "error", err)
+	}
+	log.Infow("gRPC server listening", "port", ":"+grpcPort)
+
+	// Watch for shutdown signal and gracefully stop the gRPC server.
+	go func() {
+		<-ctx.Done()
+		log.Infow("gRPC shutdown signal received, waiting for gateway to stop...")
+
+		// Wait for the gateway to stop first.
+		<-gatewayDone
+		log.Infow("Stopping gRPC gracefully...")
+		grpcServer.GracefulStop()
+	}()
+
+	// Blocks here until the gRPC server is completely stopped.
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("gRPC server exited", "error", err)
+	}
+
+	log.Infow("gRPC server stopped cleanly")
 }
