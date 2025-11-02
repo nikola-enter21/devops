@@ -16,7 +16,9 @@ spec:
       filters:
         - type: URLRewrite
           urlRewrite:
-            pathPrefix: /api/v1
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /api/v1
       backendRefs:
         - name: users-service
           port: 80
