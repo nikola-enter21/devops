@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	_ "github.com/lib/pq"
-	"github.com/nikola-enter21/devops-fmi-course/logging"
+	"github.com/nikola-enter21/devops-fmi-course/internal/logging"
 )
 
 var (

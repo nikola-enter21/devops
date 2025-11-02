@@ -20,13 +20,11 @@ type Engine struct {
 func NewEmbedded() (*Engine, error) {
 	ctx := context.Background()
 
-	// Load embedded Rego source
 	policySrc, err := fs.ReadFile("policy.rego")
 	if err != nil {
 		return nil, fmt.Errorf("read embedded policy: %w", err)
 	}
 
-	// Load embedded data.json into a Go map
 	dataBytes, err := fs.ReadFile("data.json")
 	if err != nil {
 		return nil, fmt.Errorf("read embedded data.json: %w", err)
@@ -37,7 +35,6 @@ func NewEmbedded() (*Engine, error) {
 		return nil, fmt.Errorf("parse data.json: %w", err)
 	}
 
-	// Prepare OPA query with embedded sources
 	r := rego.New(
 		rego.Query("data.policy.allow"),
 		rego.Module("policy.rego", string(policySrc)),
@@ -52,8 +49,7 @@ func NewEmbedded() (*Engine, error) {
 	return &Engine{query: query}, nil
 }
 
-func (e *Engine) Evaluate(role, route string) (bool, error) {
-	ctx := context.Background()
+func (e *Engine) Evaluate(ctx context.Context, role, route string) (bool, error) {
 	input := map[string]interface{}{
 		"role":  role,
 		"route": route,
