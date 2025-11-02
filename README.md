@@ -1,4 +1,4 @@
-# DevOps FMI Project
+# DevOps
 
 Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GKE), OpenTofu (Terraform), Open Policy Agent (OPA).
 
