@@ -17,7 +17,7 @@ spec:
         - name: users
           image: europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 8080
           env:
             - name: HTTP_PORT
               value: ":8080"
