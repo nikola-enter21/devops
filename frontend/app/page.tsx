@@ -12,16 +12,16 @@ export default function Home() {
     const check = async () => {
       try {
         const [apiRes, dbRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/healthz`, {
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/healthz`, {
             cache: "no-store",
             headers: {
-              "Grpc-Metadata-X-User-Role": "guest", // no real auth, demo purpose only
+              "X-User-Role": "guest", // no real auth, demo purpose only
             },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/checkDatabase`, {
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/checkDatabase`, {
             cache: "no-store",
             headers: {
-              "Grpc-Metadata-X-User-Role": "guest", // no real auth, demo purpose only
+              "X-User-Role": "guest", // no real auth, demo purpose only
             },
           }),
         ]);
