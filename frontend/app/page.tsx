@@ -15,13 +15,13 @@ export default function Home() {
           fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/healthz`, {
             cache: "no-store",
             headers: {
-              "X-User-Role": "guest", // no real auth, demo purpose only
+              "Grpc-Metadata-X-User-Role": "guest", // no real auth, demo purpose only
             },
           }),
           fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/checkDatabase`, {
             cache: "no-store",
             headers: {
-              "X-User-Role": "guest", // no real auth, demo purpose only
+              "Grpc-Metadata-X-User-Role": "guest", // no real auth, demo purpose only
             },
           }),
         ]);

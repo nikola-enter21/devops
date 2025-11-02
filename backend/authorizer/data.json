@@ -1,0 +1,34 @@
+{
+  "endpoints": {
+    "user.v1.UserService/Healthz": "api.user.v1.healthz",
+    "user.v1.UserService/CheckDatabase": "api.user.v1.checkDatabase",
+    "user.v1.UserService/Login": "api.user.v1.login",
+    "user.v1.UserService/Register": "api.user.v1.register"
+  },
+  "roles": {
+    "guest": {
+      "permissions": [
+        "api.user.v1.healthz",
+        "api.user.v1.checkDatabase",
+        "api.user.v1.login",
+        "api.user.v1.register"
+      ]
+    },
+    "user": {
+      "permissions": [
+        "api.user.v1.healthz",
+        "api.user.v1.checkDatabase",
+        "api.user.v1.login",
+        "api.user.v1.register"
+      ]
+    },
+    "admin": {
+      "permissions": [
+        "api.user.v1.healthz",
+        "api.user.v1.checkDatabase",
+        "api.user.v1.login",
+        "api.user.v1.register"
+      ]
+    }
+  }
+}

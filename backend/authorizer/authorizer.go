@@ -1,4 +1,4 @@
-package policy
+package authorizer
 
 import (
 	"context"
@@ -13,11 +13,15 @@ import (
 //go:embed policy.rego data.json
 var fs embed.FS
 
+type Authorizer interface {
+	Evaluate(ctx context.Context, input map[string]interface{}) (bool, error)
+}
+
 type Engine struct {
 	query rego.PreparedEvalQuery
 }
 
-func NewEmbedded() (*Engine, error) {
+func NewEmbedded() (Authorizer, error) {
 	ctx := context.Background()
 
 	policySrc, err := fs.ReadFile("policy.rego")
@@ -36,7 +40,7 @@ func NewEmbedded() (*Engine, error) {
 	}
 
 	r := rego.New(
-		rego.Query("data.policy.allow"),
+		rego.Query("data.authorizer.allow"),
 		rego.Module("policy.rego", string(policySrc)),
 		rego.Store(inmem.NewFromObject(data)),
 	)
@@ -49,12 +53,7 @@ func NewEmbedded() (*Engine, error) {
 	return &Engine{query: query}, nil
 }
 
-func (e *Engine) Evaluate(ctx context.Context, role, route string) (bool, error) {
-	input := map[string]interface{}{
-		"role":  role,
-		"route": route,
-	}
-
+func (e *Engine) Evaluate(ctx context.Context, input map[string]interface{}) (bool, error) {
 	results, err := e.query.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, fmt.Errorf("eval: %w", err)
