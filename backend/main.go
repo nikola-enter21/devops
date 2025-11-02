@@ -1,87 +1,53 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-	"os"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	_ "github.com/lib/pq"
+	"github.com/nikola-enter21/devops-fmi-course/handlers"
+	"github.com/nikola-enter21/devops-fmi-course/logging"
+	"github.com/nikola-enter21/devops-fmi-course/middleware"
 )
 
 func main() {
+	log := logging.MustNewLogger()
+	defer log.Sync()
+
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     os.Getenv("ALLOWED_ORIGINS"),
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowOrigins:     allowedOrigins(),
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
 
 	app.Use(logger.New())
 	app.Use(recover.New())
 
-	app.Get("/healthz", func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusOK)
-	})
+	app.Route("/api/v1", func(api fiber.Router) {
+		wrapRoutes(api, []fiber.Handler{middleware.AuthorizeMiddleware()}, func(r fiber.Router) {
+			r.Get("/healthz", handlers.HealthCheckHandler).Name("healthcheck")
+			r.Get("/checkDatabase", handlers.CheckDatabaseHandler(
+				getEnv("DB_HOST", "postgres"),
+				getEnv("DB_PORT", "5432"),
+				getEnv("DB_USER", "postgres"),
+				getEnv("DB_PASSWORD", "postgres"),
+				getEnv("DB_NAME", "postgres"),
+			)).Name("healthcheck")
 
-	app.Get("/checkDatabase", func(c *fiber.Ctx) error {
-		connStr := fmt.Sprintf(
-			"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			getEnv("DB_HOST", "postgres"),
-			getEnv("DB_PORT", "5432"),
-			getEnv("DB_USER", "postgres"),
-			getEnv("DB_PASSWORD", "postgres"),
-			getEnv("DB_NAME", "postgres"),
-		)
-
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			log.Println("DB connection open error:", err)
-			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-		}
-		defer db.Close()
-
-		if err := db.Ping(); err != nil {
-			log.Println("DB ping error:", err)
-			return c.Status(500).JSON(fiber.Map{
-				"status": "unreachable",
-				"error":  err.Error(),
-			})
-		}
-
-		log.Println("Connected to Postgres successfully")
-		return c.JSON(fiber.Map{
-			"status":  "ok",
-			"message": "Connected to database",
+			r.Post("/login", handlers.LoginHandler).Name("auth.login")
+			r.Post("/register", handlers.RegisterHandler).Name("auth.register")
 		})
-	})
-
-	app.Post("/login", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Login successful",
-		})
-	})
-
-	app.Post("/register", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "User registered",
-		})
-	})
+	}, "api.v1.")
 
 	port := getEnv("PORT", "8080")
-	log.Printf("Server running on http://localhost:%s", port)
-	log.Fatal(app.Listen(":" + port))
-}
 
-func getEnv(key, fallback string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
+	log.Infow("server starting", "url", "http://localhost:"+port)
+
+	if err := app.Listen(":" + port); err != nil {
+		log.Fatalw("server failed to start", "error", err)
 	}
-	return fallback
 }
