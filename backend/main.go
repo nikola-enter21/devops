@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"buf.build/go/protovalidate"
+	protovalidate_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate"
 	user "github.com/nikola-enter21/devops-fmi-course/api/gen/go/user/v1"
 	"github.com/nikola-enter21/devops-fmi-course/authorizer"
 	"github.com/nikola-enter21/devops-fmi-course/gateway"
@@ -41,9 +43,14 @@ func (s *Server) Serve() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	validator, err := protovalidate.New()
+	if err != nil {
+		log.Fatalf("failed to create proto validator: %v", err)
+	}
+
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(authorizer.UnaryServerInterceptor(s.Authorizer)),
-		grpc.StreamInterceptor(authorizer.StreamServerInterceptor(s.Authorizer)),
+		grpc.UnaryInterceptor(protovalidate_middleware.UnaryServerInterceptor(validator)),
+		grpc.StreamInterceptor(protovalidate_middleware.StreamServerInterceptor(validator)),
 	)
 
 	userSvc := &service.UserServiceServer{}

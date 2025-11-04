@@ -7,6 +7,7 @@
 package user
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -394,16 +395,17 @@ var File_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12user/v1/user.proto\x12\auser.v1\x1a\x1cgoogle/api/annotations.proto\"\x10\n" +
+	"\x12user/v1/user.proto\x12\auser.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\x10\n" +
 	"\x0eHealthzRequest\")\n" +
 	"\x0fHealthzResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"\x16\n" +
 	"\x14CheckDatabaseRequest\"4\n" +
 	"\x15CheckDatabaseResponse\x12\x1b\n" +
-	"\tdb_status\x18\x01 \x01(\tR\bdbStatus\"F\n" +
-	"\fLoginRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"%\n" +
+	"\tdb_status\x18\x01 \x01(\tR\bdbStatus\"n\n" +
+	"\fLoginRequest\x126\n" +
+	"\busername\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15\x10\x03\x1822\x0f^[a-zA-Z0-9_]+$R\busername\x12&\n" +
+	"\bpassword\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\b\x18\x80\x01R\bpassword\"%\n" +
 	"\rLoginResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"_\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
@@ -417,7 +419,8 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\aHealthz\x12\x17.user.v1.HealthzRequest\x1a\x18.user.v1.HealthzResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/v1/healthz\x12m\n" +
 	"\rCheckDatabase\x12\x1d.user.v1.CheckDatabaseRequest\x1a\x1e.user.v1.CheckDatabaseResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/checkDatabase\x12P\n" +
 	"\x05Login\x12\x15.user.v1.LoginRequest\x1a\x16.user.v1.LoginResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/login\x12\\\n" +
-	"\bRegister\x12\x18.user.v1.RegisterRequest\x1a\x19.user.v1.RegisterResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/registerBKZIgithub.com/nikola-enter21/devops-fmi-course/api/proto/gen/go/user/v1;userb\x06proto3"
+	"\bRegister\x12\x18.user.v1.RegisterRequest\x1a\x19.user.v1.RegisterResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/registerB\xa0\x01\n" +
+	"\vcom.user.v1B\tUserProtoP\x01ZIgithub.com/nikola-enter21/devops-fmi-course/api/proto/gen/go/user/v1;user\xa2\x02\x03UXX\xaa\x02\aUser.V1\xca\x02\aUser\\V1\xe2\x02\x13User\\V1\\GPBMetadata\xea\x02\bUser::V1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once

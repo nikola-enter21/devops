@@ -11,6 +11,16 @@ require (
 )
 
 require (
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1 // indirect
+	cel.dev/expr v0.24.0 // indirect
+	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
+	github.com/google/cel-go v0.26.1 // indirect
+	github.com/stoewer/go-strcase v1.3.1 // indirect
+	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
+)
+
+require (
+	buf.build/go/protovalidate v1.0.0
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -25,6 +35,7 @@ require (
 	github.com/gofiber/schema v1.6.0 // indirect
 	github.com/gofiber/utils/v2 v2.0.0-rc.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
 	github.com/klauspost/compress v1.18.1 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
