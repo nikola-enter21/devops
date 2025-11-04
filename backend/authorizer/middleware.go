@@ -13,10 +13,10 @@ import (
 func UnaryServerInterceptor(auth Authorizer) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		rpcMethod := info.FullMethod
 
 		role := extractRole(ctx)
@@ -24,7 +24,7 @@ func UnaryServerInterceptor(auth Authorizer) grpc.UnaryServerInterceptor {
 			return nil, status.Error(codes.Unauthenticated, "missing role in metadata")
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"role": role,
 			"rpc":  strings.TrimPrefix(rpcMethod, "/"),
 		}
@@ -44,7 +44,7 @@ func UnaryServerInterceptor(auth Authorizer) grpc.UnaryServerInterceptor {
 
 func StreamServerInterceptor(auth Authorizer) grpc.StreamServerInterceptor {
 	return func(
-		srv interface{},
+		srv any,
 		ss grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
@@ -56,7 +56,7 @@ func StreamServerInterceptor(auth Authorizer) grpc.StreamServerInterceptor {
 			return status.Error(codes.Unauthenticated, "missing role in metadata")
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"role": role,
 			"rpc":  strings.TrimPrefix(rpcMethod, "/"),
 		}

@@ -49,8 +49,14 @@ func (s *Server) Serve() {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(protovalidate_middleware.UnaryServerInterceptor(validator)),
-		grpc.StreamInterceptor(protovalidate_middleware.StreamServerInterceptor(validator)),
+		grpc.ChainUnaryInterceptor(
+			protovalidate_middleware.UnaryServerInterceptor(validator),
+			authorizer.UnaryServerInterceptor(s.Authorizer),
+		),
+		grpc.ChainStreamInterceptor(
+			protovalidate_middleware.StreamServerInterceptor(validator),
+			authorizer.StreamServerInterceptor(s.Authorizer),
+		),
 	)
 
 	userSvc := &service.UserServiceServer{}

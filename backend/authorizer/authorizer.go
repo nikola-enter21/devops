@@ -14,7 +14,7 @@ import (
 var fs embed.FS
 
 type Authorizer interface {
-	Evaluate(ctx context.Context, input map[string]interface{}) (bool, error)
+	Evaluate(ctx context.Context, input map[string]any) (bool, error)
 }
 
 type Engine struct {
@@ -34,7 +34,7 @@ func NewEmbedded() (Authorizer, error) {
 		return nil, fmt.Errorf("read embedded data.json: %w", err)
 	}
 
-	var data map[string]interface{}
+	var data map[string]any
 	if err := json.Unmarshal(dataBytes, &data); err != nil {
 		return nil, fmt.Errorf("parse data.json: %w", err)
 	}
@@ -53,7 +53,7 @@ func NewEmbedded() (Authorizer, error) {
 	return &Engine{query: query}, nil
 }
 
-func (e *Engine) Evaluate(ctx context.Context, input map[string]interface{}) (bool, error) {
+func (e *Engine) Evaluate(ctx context.Context, input map[string]any) (bool, error) {
 	results, err := e.query.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, fmt.Errorf("eval: %w", err)
