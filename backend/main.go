@@ -36,6 +36,8 @@ func main() {
 }
 
 func (s *Server) Serve() {
+	defer logging.Sync()
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
