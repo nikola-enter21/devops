@@ -1,6 +1,6 @@
 # DevOps
 
-Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GKE), OpenTofu (Terraform), Open Policy Agent (OPA).
+Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GKE), OpenTofu (Terraform), Open Policy Agent (OPA), Buf
 
 ---
 
@@ -43,6 +43,7 @@ Runs locally at [http://localhost:3000](http://localhost:3000)
 
 - Go 1.25.3
 - gRPC + gRPC-Gateway v2
+- Buf - modern Protocol Buffers toolchain
 - Open Policy Agent (OPA)
 - PostgreSQL (Cloud SQL Private IP)
 - Docker and Kubernetes (GKE)
