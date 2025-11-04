@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: users-service
-  namespace: default
+  namespace: gopherify
 spec:
   type: ClusterIP
   selector:

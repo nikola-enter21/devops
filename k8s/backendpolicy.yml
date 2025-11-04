@@ -2,7 +2,7 @@ apiVersion: networking.gke.io/v1
 kind: GCPBackendPolicy
 metadata:
   name: users-backendpolicy
-  namespace: default
+  namespace: gopherify
 spec:
   targetRef:
     group: ""

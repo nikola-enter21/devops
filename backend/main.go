@@ -67,6 +67,7 @@ func (s *Server) Serve() {
 
 		// Wait for the gateway to stop first.
 		<-gatewayDone
+
 		log.Infow("Stopping gRPC gracefully...")
 		grpcServer.GracefulStop()
 	}()
