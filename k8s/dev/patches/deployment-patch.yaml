@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+  namespace: gopherify
+spec:
+  template:
+    spec:
+      containers:
+        - name: users
+          image: users:local
+          env:
+            - name: ALLOWED_ORIGINS
+              value: "http://localhost:3000"

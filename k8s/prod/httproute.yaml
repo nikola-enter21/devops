@@ -12,13 +12,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /api/v1
+            value: /api/v1
       backendRefs:
         - name: users-service
           port: 80

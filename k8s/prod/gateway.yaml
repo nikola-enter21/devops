@@ -5,11 +5,9 @@ metadata:
   namespace: gopherify
 spec:
   gatewayClassName: gke-l7-global-external-managed
-
   addresses:
     - type: NamedAddress
       value: backend-ip
-
   listeners:
     - name: https
       hostname: api.users.gopherify.com
