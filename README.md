@@ -30,7 +30,7 @@ npm run dev
 Environment variable:
 
 ```bash
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+NEXT_PUBLIC_BACKEND_URL=http://api.users.127.0.0.1.nip.io
 ```
 
 Runs locally at [http://localhost:3000](http://localhost:3000)
@@ -82,22 +82,68 @@ The backend now exposes both **gRPC** and **REST** endpoints using **gRPC-Gatewa
 
 ### Local Development
 
-Run locally using Docker Compose:
+Local deployments are managed using **Kustomize** (built into `kubectl`).
 
-```bash
-docker compose -f docker-compose.local.yaml up --build
+#### Folder structure
+
+```
+k8s/
+├── base/
+│   ├── namespace.yaml
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── kustomization.yaml
+│
+├── dev/
+│   ├── ingress.yaml
+│   ├── kustomization.yaml
+│   └── patches/
+│       └── deployment-patch.yaml
+│   └── postgres/
+│       └── postgres-deployment.yaml
+│       └── postgres-service.yaml
+│
+└── prod/
+    ├── gateway.yaml
+    ├── httproute.yaml
+    ├── backendpolicy.yaml
+    ├── healthcheckpolicy.yaml
+    └── kustomization.yaml
 ```
 
-This starts:
+- **`base/`** contains shared manifests for all environments.
+- **`dev/`** is used for local development on Minikube with a locally built image (`users:local`).
+- **`prod/`** is used for GKE production deployment with HTTPS and managed certificates.
 
-- gRPC + Gateway backend
-- PostgreSQL
+#### Commands
 
-Test endpoints:
+Apply the desired environment:
 
 ```bash
-curl http://localhost:8080/api/v1/healthz
-curl http://localhost:8080/api/v1/checkDatabase
+kubectl apply -k k8s/dev     # Local (Minikube)
+kubectl apply -k k8s/prod    # Production (GKE)
+```
+
+Preview changes before applying:
+
+```bash
+kubectl diff -k k8s/dev
+kubectl diff -k k8s/prod
+```
+
+#### Local helper script
+
+The script `local_k8.sh` automates the local setup:
+
+- Starts Minikube (if not running)
+- Enables the NGINX Ingress addon
+- Builds the local backend image (`users:local`)
+- Applies the `k8s/dev` overlay
+- Waits for pods to become ready
+- Prints the backend service and ingress URL
+
+```bash
+./local_k8.sh
 ```
 
 ---
@@ -143,26 +189,23 @@ kubectl apply -f k8s/
 - TLS termination uses a **Google-managed certificate** attached via `networking.gke.io/pre-shared-certs`.
 - The Gateway forwards HTTPS traffic through an `HTTPRoute` to the backend `Service`, which exposes Pods on port `8080`.
 
-This replaces the legacy Kubernetes Ingress and ManagedCertificate workflow with the new **Gateway API**, offering more flexibility, scalability, and control.
-
 ---
 
 ## Security
 
-- **OPA**: fine-grained RBAC via Rego policies
+- OPA: fine-grained RBAC via Rego policies
 - All sensitive environment variables are stored in **Kubernetes Secrets**.
 - GKE communicates with **Cloud SQL over private IP** (no public access).
-- **TLS termination** is handled by Google Cloud using a **managed certificate** for `api.users.gopherify.com`.
-- **Workload Identity** is enabled for secure service-to-service communication without key files.
+- TLS termination is handled by Google Cloud using a **managed certificate** for `api.users.gopherify.com`.
+- Workload Identity\*\* is enabled for secure service-to-service communication without key files.
 
 ---
 
 ## Future Improvements
 
-- Automate Kubernetes deployments
 - Add **Horizontal Pod Autoscaling (HPA)**
-- Integrate **Ambient Service Mesh**
 - Deploy **ArgoCD for GitOps** automation
+- Integrate **Ambient Service Mesh**
 - Extend **monitoring & observability**
 
 ---
