@@ -169,7 +169,7 @@ docker push europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-cour
 2. Apply Kubernetes manifests:
 
 ```bash
-kubectl diff -k k8s/prod
+kubectl apply -k k8s/prod
 ```
 
 ---
