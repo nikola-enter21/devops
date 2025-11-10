@@ -3,13 +3,10 @@ package grpc
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/nikola-enter21/devops-fmi-course/api/gen/go/user/v1"
 	"github.com/nikola-enter21/devops-fmi-course/config"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *Server) Healthz(ctx context.Context, _ *user.HealthzRequest) (*user.HealthzResponse, error) {
@@ -21,17 +18,6 @@ func (s *Server) Healthz(ctx context.Context, _ *user.HealthzRequest) (*user.Hea
 
 func (s *Server) Login(ctx context.Context, req *user.LoginRequest) (*user.LoginResponse, error) {
 	log.Infow("login attempt", "username", req.Username)
-
-	_, err := s.UserRepository.GetByID(ctx, 123)
-	if err != nil {
-		log.Errorw("user by id failed", "error", err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, status.Error(codes.NotFound, "user not found")
-		}
-
-		return nil, status.Error(codes.Internal, "internal server error")
-	}
-
 	return &user.LoginResponse{
 		Token: "Login successful",
 	}, nil
