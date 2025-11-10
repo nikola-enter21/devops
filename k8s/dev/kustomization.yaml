@@ -8,6 +8,7 @@ resources:
   - ingress.yaml
   - postgres/postgres-deployment.yaml
   - postgres/postgres-service.yaml
+  - job-users-migrator.yaml
 
 patches:
   - path: patches/deployment-patch.yaml

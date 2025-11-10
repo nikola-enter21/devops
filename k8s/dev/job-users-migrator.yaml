@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: users-migrator
+  namespace: gopherify
+  labels:
+    app: users-migrator
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 60
+
+  template:
+    metadata:
+      labels:
+        app: users-migrator
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for postgres..."
+              until nc -z postgres.gopherify.svc.cluster.local 5432; do
+                sleep 2
+              done
+              echo "Postgres is ready."
+
+      containers:
+        - name: migrator
+          image: users-migrator:local
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: users-db-secret
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
