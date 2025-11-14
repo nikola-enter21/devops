@@ -4,6 +4,9 @@ Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GK
 
 ---
 
+### Desired Architecture (WIP)
+- ![Architecture](./backend_diagram.png)
+
 ## Frontend
 
 ### Tech Stack
