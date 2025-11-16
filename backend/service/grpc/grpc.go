@@ -19,7 +19,7 @@ func (s *Server) Healthz(ctx context.Context, _ *user.HealthzRequest) (*user.Hea
 func (s *Server) Login(ctx context.Context, req *user.LoginRequest) (*user.LoginResponse, error) {
 	log.Infow("login attempt", "username", req.Username)
 	return &user.LoginResponse{
-		Token: "Login successful",
+		Token: "Login successful2",
 	}, nil
 }
 
