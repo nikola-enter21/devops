@@ -27,6 +27,7 @@ jobs:
       TF_VAR_region: europe-west4
       TF_VAR_zone: europe-west4-a
       TF_VAR_db_password: ${{ secrets.TF_VAR_DB_PASSWORD }}
+      TF_VAR_github_repository: nikola-enter21/devops
 
     defaults:
       run:
@@ -39,8 +40,8 @@ jobs:
       - name: Authenticate to GCP via OIDC
         uses: google-github-actions/auth@v3
         with:
-          workload_identity_provider: "projects/632982591699/locations/global/workloadIdentityPools/github-pool/providers/github"
-          service_account: terraform-deployer@devops-fmi-course-476112.iam.gserviceaccount.com
+          workload_identity_provider: "projects/632982591699/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions"
+          service_account: github-terraform-deployer@devops-fmi-course-476112.iam.gserviceaccount.com
           token_format: "access_token"
           project_id: devops-fmi-course-476112
 
