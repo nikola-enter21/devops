@@ -24,7 +24,7 @@ eval "$(minikube docker-env)"
 
 # 4. Build backend image
 echo "Building local backend image..."
-docker build -t ${IMAGE_NAME} -f backend/cmd/service/Dockerfile .
+docker build -t ${IMAGE_NAME} -f backend/cmd/service/Dockerfile backend
 
 # 5. Apply dev overlay
 echo "Applying Kustomize dev overlay..."
