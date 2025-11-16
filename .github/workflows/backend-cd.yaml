@@ -75,5 +75,6 @@ jobs:
       - name: Deploy with Kustomize
         run: |
           cd k8s/prod
+          kustomize edit add annotation app.git_commit:${GITHUB_SHA}
           kustomize edit set image "${IMAGE_REPO}=${IMAGE_REPO}:${IMAGE_TAG}"
           kustomize build . | kubectl apply -f -
