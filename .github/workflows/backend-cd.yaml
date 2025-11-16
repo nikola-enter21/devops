@@ -33,6 +33,10 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: devops-fmi-course-476112
+          install_components: gke-gcloud-auth-plugin
+
+      - name: Enable GKE gcloud auth plugin
+        run: echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
 
       - name: Configure Docker auth for Artifact Registry
         run: |
@@ -48,7 +52,7 @@ jobs:
           echo "Building image: $IMAGE"
           docker build -f ./backend/cmd/service/Dockerfile -t "$IMAGE" ./backend
           docker push "$IMAGE"
-          
+
           echo "IMAGE_REPO=$IMAGE_REPO" >> $GITHUB_ENV
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
