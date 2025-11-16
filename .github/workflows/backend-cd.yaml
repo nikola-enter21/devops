@@ -46,7 +46,7 @@ jobs:
           IMAGE="$IMAGE_REPO:$TAG"
 
           echo "Building image: $IMAGE"
-          docker build -f ./backend/service/Dockerfile -t "$IMAGE" ./backend
+          docker build -f ./backend/cmd/service/Dockerfile -t "$IMAGE" ./backend
           docker push "$IMAGE"
           
           echo "IMAGE_REPO=$IMAGE_REPO" >> $GITHUB_ENV
