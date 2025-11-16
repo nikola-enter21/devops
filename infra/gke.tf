@@ -53,7 +53,7 @@ resource "google_container_node_pool" "primary_nodes" {
   depends_on = [google_container_cluster.primary]
 
   node_config {
-    machine_type    = "e2-medium"
+    machine_type    = "e2-standard-4"
     disk_type       = "pd-balanced"
     disk_size_gb    = 50
     service_account = google_service_account.gke_nodes.email
