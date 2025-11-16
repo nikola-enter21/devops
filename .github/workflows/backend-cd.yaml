@@ -1,0 +1,73 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "k8s/**"
+      - ".github/workflows/backend-cd.yaml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via OIDC
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "projects/632982591699/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions"
+          service_account: github-terraform-deployer@devops-fmi-course-476112.iam.gserviceaccount.com
+          token_format: "access_token"
+          project_id: devops-fmi-course-476112
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: devops-fmi-course-476112
+
+      - name: Configure Docker auth for Artifact Registry
+        run: |
+          gcloud auth configure-docker europe-west4-docker.pkg.dev --quiet
+
+      - name: Build and push backend Docker image
+        working-directory: .
+        run: |
+          IMAGE_REPO="europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app"
+          TAG="${GITHUB_SHA}"
+          IMAGE="$IMAGE_REPO:$TAG"
+
+          echo "Building image: $IMAGE"
+          docker build -t "$IMAGE" ./backend
+          docker push "$IMAGE"
+          
+          echo "IMAGE_REPO=$IMAGE_REPO" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials devops-fmi-course-gke \
+            --zone europe-west4-a \
+            --project devops-fmi-course-476112
+
+      - name: Install Kustomize
+        uses: imranismail/setup-kustomize@v2.1.0
+        with:
+          kustomize-version: "*"
+
+      - name: Deploy to prod with Kustomize
+        run: |
+          cd k8s/prod
+
+          kustomize edit set image \
+            "$IMAGE_REPO=$IMAGE_REPO:$IMAGE_TAG"
+
+          kustomize build . | kubectl apply -f -
