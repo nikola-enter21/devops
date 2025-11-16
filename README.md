@@ -153,31 +153,8 @@ The script `local_k8.sh` automates the local setup:
 
 ---
 
-## Deployment
-
-Manual deployment (CI/CD not yet automated).
-
-1. Build and push the backend image:
-
-- Logged in with `gcloud`
-- Connected to correct GKE cluster
-- Authenticated for Artifact Registry
-- Infrastructure provisioned with OpenTofu
-- Docker image built + pushed manually
-- Kubernetes manifests applied manually
-
-```bash
-docker build -t europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app ./backend
-docker push europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app
-```
-
-2. Apply Kubernetes manifests:
-
-```bash
-kubectl apply -k k8s/prod
-```
-
----
+## Deployment 
+- Automated with Github Actions
 
 ## GKE and Cloud SQL Setup
 
