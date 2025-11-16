@@ -1,4 +1,4 @@
-name: Deploy
+name: Backend CD
 
 on:
   push:
@@ -12,6 +12,14 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  GCP_PROJECT_ID: devops-fmi-course-476112
+  GCP_ZONE: europe-west4-a
+  GCP_CLUSTER: devops-fmi-course-gke
+  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/632982591699/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions
+  GCP_SA_EMAIL: github-terraform-deployer@devops-fmi-course-476112.iam.gserviceaccount.com
+  IMAGE_REPO: europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,15 +32,15 @@ jobs:
       - name: Authenticate to GCP via OIDC
         uses: google-github-actions/auth@v3
         with:
-          workload_identity_provider: "projects/632982591699/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions"
-          service_account: github-terraform-deployer@devops-fmi-course-476112.iam.gserviceaccount.com
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SA_EMAIL }}
           token_format: "access_token"
-          project_id: devops-fmi-course-476112
+          project_id: ${{ env.GCP_PROJECT_ID }}
 
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: devops-fmi-course-476112
+          project_id: ${{ env.GCP_PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
 
       - name: Enable GKE gcloud auth plugin
@@ -43,35 +51,29 @@ jobs:
           gcloud auth configure-docker europe-west4-docker.pkg.dev --quiet
 
       - name: Build and push backend Docker image
-        working-directory: .
         run: |
-          IMAGE_REPO="europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app"
           TAG="${GITHUB_SHA}"
-          IMAGE="$IMAGE_REPO:$TAG"
+          IMAGE="${IMAGE_REPO}:${TAG}"
 
           echo "Building image: $IMAGE"
           docker build -f ./backend/cmd/service/Dockerfile -t "$IMAGE" ./backend
           docker push "$IMAGE"
 
-          echo "IMAGE_REPO=$IMAGE_REPO" >> $GITHUB_ENV
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
       - name: Get GKE credentials
         run: |
-          gcloud container clusters get-credentials devops-fmi-course-gke \
-            --zone europe-west4-a \
-            --project devops-fmi-course-476112
+          gcloud container clusters get-credentials "$GCP_CLUSTER" \
+            --zone "$GCP_ZONE" \
+            --project "$GCP_PROJECT_ID"
 
       - name: Install Kustomize
         uses: imranismail/setup-kustomize@v2.1.0
         with:
           kustomize-version: "*"
 
-      - name: Deploy to prod with Kustomize
+      - name: Deploy with Kustomize
         run: |
           cd k8s/prod
-
-          kustomize edit set image \
-            "$IMAGE_REPO=$IMAGE_REPO:$IMAGE_TAG"
-
+          kustomize edit set image "${IMAGE_REPO}=${IMAGE_REPO}:${IMAGE_TAG}"
           kustomize build . | kubectl apply -f -
