@@ -76,5 +76,6 @@ jobs:
         run: |
           cd k8s/prod
           kustomize edit add annotation app.git_commit:${GITHUB_SHA}
+          kustomize edit add annotation kubernetes.io/change-cause:"Deployed via GitHub Actions commit ${GITHUB_SHA}"
           kustomize edit set image "${IMAGE_REPO}=${IMAGE_REPO}:${IMAGE_TAG}"
           kustomize build . | kubectl apply -f -
