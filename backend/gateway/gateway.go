@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nikola-enter21/devops-fmi-course/api/gen/go/user/v1"
@@ -17,11 +18,14 @@ var (
 	log = logging.MustNewLogger()
 )
 
-func Serve(ctx context.Context, httpAddr, grpcTarget string) {
+func Serve(signalCtx context.Context, httpAddr, grpcTarget string) {
+	gwCtx, gwCancel := context.WithCancel(context.Background())
+	defer gwCancel()
+
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
-	if err := user.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcTarget, opts); err != nil {
+	if err := user.RegisterUserServiceHandlerFromEndpoint(gwCtx, mux, grpcTarget, opts); err != nil {
 		log.Fatalf("failed to register gateway: %v", err)
 	}
 
@@ -30,22 +34,24 @@ func Serve(ctx context.Context, httpAddr, grpcTarget string) {
 		Handler: allowCORS(mux),
 	}
 
-	// Watch for shutdown signal and gracefully stop the gateway.
 	go func() {
-		<-ctx.Done()
-		log.Infow("Shutdown signal received, stopping HTTP gateway...")
-		if err := httpServer.Shutdown(context.Background()); err != nil {
-			log.Errorw("HTTP server shutdown error", "error", err)
-		} else {
-			log.Infow("HTTP gateway shutdown complete.")
+		log.Infow("HTTP gateway listening", "address", httpAddr)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server error: %v", err)
 		}
 	}()
 
-	log.Infow("HTTP gateway listening", "address", httpAddr)
+	// wait for sigterm/sigint
+	<-signalCtx.Done()
 
-	// Blocks here until the gateway is completely stopped.
-	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("HTTP server error: %v", err)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	log.Infow("HTTP gateway shutting down...")
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		log.Errorw("HTTP server shutdown error", "error", err)
+	} else {
+		log.Infow("HTTP gateway shutdown complete.")
 	}
 }
 

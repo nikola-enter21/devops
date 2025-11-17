@@ -21,7 +21,8 @@ var (
 
 func main() {
 	defer logging.Sync()
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+
+	signalCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	auth, err := authorizer.NewEmbedded()
@@ -29,15 +30,16 @@ func main() {
 		log.Fatalf("failed to initialize OPA authorizer: %v", err)
 	}
 
-	pool, err := pgxpool.New(ctx, config.PostgresDSN())
+	pool, err := pgxpool.New(context.Background(), config.PostgresDSN())
 	if err != nil {
 		log.Fatalf("failed to create a pool: %v", err)
 	}
+	defer pool.Close()
 
 	s := &grpc.Server{
 		Authorizer:     auth,
 		UserRepository: repo.NewUserRepository(pool),
 	}
 
-	s.Serve(ctx, httpPort, grpcPort)
+	s.Serve(signalCtx, httpPort, grpcPort)
 }

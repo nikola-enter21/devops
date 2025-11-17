@@ -31,7 +31,7 @@ type Server struct {
 	UserRepository UserRepository
 }
 
-func (s *Server) Serve(ctx context.Context, httpPort, grpcPort string) {
+func (s *Server) Serve(signalCtx context.Context, httpPort, grpcPort string) {
 	validator, err := protovalidate.New()
 	if err != nil {
 		log.Fatalf("failed to create proto validator: %v", err)
@@ -50,35 +50,23 @@ func (s *Server) Serve(ctx context.Context, httpPort, grpcPort string) {
 
 	user.RegisterUserServiceServer(grpcServer, s)
 
-	// Start the HTTP gateway in a separate goroutine
-	gatewayDone := make(chan struct{})
-	go func() {
-		gateway.Serve(ctx, ":"+httpPort, fmt.Sprintf("localhost%s", ":"+grpcPort))
-		close(gatewayDone)
-	}()
-
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen", "error", err)
 	}
-	log.Infow("gRPC server listening", "port", ":"+grpcPort)
 
-	// Watch for shutdown signal and gracefully stop the gRPC server.
+	go gateway.Serve(signalCtx, ":"+httpPort, fmt.Sprintf("localhost:%s", grpcPort))
+
 	go func() {
-		<-ctx.Done()
-		log.Infow("gRPC shutdown signal received, waiting for gateway to stop...")
-
-		// Wait for the gateway to stop first.
-		<-gatewayDone
-
-		log.Infow("Stopping gRPC gracefully...")
-		grpcServer.GracefulStop()
+		log.Infow("gRPC server listening", "port", ":"+grpcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("gRPC server exited", "error", err)
+		}
 	}()
 
-	// Blocks here until the gRPC server is completely stopped.
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("gRPC server exited", "error", err)
-	}
+	// wait for sigterm/sigint
+	<-signalCtx.Done()
 
+	grpcServer.GracefulStop()
 	log.Infow("gRPC server stopped cleanly")
 }
