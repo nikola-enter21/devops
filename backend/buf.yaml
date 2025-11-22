@@ -7,7 +7,7 @@ deps:
   - buf.build/bufbuild/protovalidate
 
 modules:
-  - path: proto
+  - path: api/proto
 lint:
   use:
     - STANDARD

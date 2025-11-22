@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"buf.build/go/protovalidate"
 	protovalidate_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate"
@@ -14,7 +15,11 @@ import (
 	"github.com/nikola-enter21/devops-fmi-course/logging"
 	db "github.com/nikola-enter21/devops-fmi-course/service/db/gen"
 	"google.golang.org/grpc"
+	health "google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
+
+const readinessDrainDelay = 5 * time.Second
 
 var (
 	log = logging.MustNewLogger()
@@ -49,6 +54,9 @@ func (s *Server) Serve(signalCtx context.Context, httpPort, grpcPort string) {
 	)
 
 	user.RegisterUserServiceServer(grpcServer, s)
+	healthServer := health.NewServer()
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
+	healthServer.SetServingStatus(user.UserService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_SERVING)
 
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
@@ -66,6 +74,12 @@ func (s *Server) Serve(signalCtx context.Context, httpPort, grpcPort string) {
 
 	// wait for sigterm/sigint
 	<-signalCtx.Done()
+
+	// signal the LB that we are shutting down so it stops sending new traffic
+	healthServer.SetServingStatus(user.UserService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
+
+	// give some time for LB state to propagate
+	time.Sleep(readinessDrainDelay)
 
 	grpcServer.GracefulStop()
 	log.Infow("gRPC server stopped cleanly")

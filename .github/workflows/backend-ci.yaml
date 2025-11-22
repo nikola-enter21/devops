@@ -14,12 +14,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.25.3
+
+      - name: Set up Buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          version: latest
+
+      - name: Buf format (drift check)
+        run: buf format -d --exit-code
+
+      - name: Buf lint
+        run: buf lint
+
+      - name: Buf build
+        run: buf build
+
+      - name: Buf generate
+        run: buf generate
+
+      - name: Check generated code drift
+        run: |
+          if ! git diff --quiet --exit-code; then
+            echo "buf generate produced uncommitted changes. Commit generated code." >&2
+            git status --short
+            exit 1
+          fi
 
       - name: Install dependencies
         run: |
