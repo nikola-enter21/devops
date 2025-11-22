@@ -13,11 +13,18 @@ spec:
       labels:
         app: users
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: users
           image: europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+            - name: grpc
+              containerPort: 8079
+          envFrom:
+            - secretRef:
+                name: users-db-secret
           env:
             - name: HTTP_PORT
               value: "8080"
@@ -25,9 +32,6 @@ spec:
               value: "8079"
             - name: ALLOWED_ORIGINS
               value: "https://devops-chi-khaki.vercel.app"
-          envFrom:
-            - secretRef:
-                name: users-db-secret
           resources:
             requests:
               cpu: "100m"
@@ -35,3 +39,21 @@ spec:
             limits:
               cpu: "250m"
               memory: "256Mi"
+          startupProbe:
+            grpc:
+              port: 8079
+              service: "user.v1.UserService"
+            failureThreshold: 15
+            periodSeconds: 2
+          livenessProbe:
+            grpc:
+              port: 8079
+              service: "user.v1.UserService"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: 8079
+              service: "user.v1.UserService"
+            initialDelaySeconds: 5
+            periodSeconds: 5
