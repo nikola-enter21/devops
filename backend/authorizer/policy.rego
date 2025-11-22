@@ -3,11 +3,11 @@ package authorizer
 default allow := false
 
 allow if {
-  input.rpc == "grpc.health.v1.Health/Check"
+	input.rpc == "grpc.health.v1.Health/Check"
 }
 
 allow if {
-  input.rpc == "grpc.health.v1.Health/Watch"
+	input.rpc == "grpc.health.v1.Health/Watch"
 }
 
 allow if {
