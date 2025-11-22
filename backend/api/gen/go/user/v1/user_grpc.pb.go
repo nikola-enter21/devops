@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	UserService_Healthz_FullMethodName       = "/user.v1.UserService/Healthz"
 	UserService_CheckDatabase_FullMethodName = "/user.v1.UserService/CheckDatabase"
 	UserService_Login_FullMethodName         = "/user.v1.UserService/Login"
 	UserService_Register_FullMethodName      = "/user.v1.UserService/Register"
@@ -28,6 +29,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
+	Healthz(ctx context.Context, in *HealthzRequest, opts ...grpc.CallOption) (*HealthzResponse, error)
 	CheckDatabase(ctx context.Context, in *CheckDatabaseRequest, opts ...grpc.CallOption) (*CheckDatabaseResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
@@ -39,6 +41,16 @@ type userServiceClient struct {
 
 func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
+}
+
+func (c *userServiceClient) Healthz(ctx context.Context, in *HealthzRequest, opts ...grpc.CallOption) (*HealthzResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HealthzResponse)
+	err := c.cc.Invoke(ctx, UserService_Healthz_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userServiceClient) CheckDatabase(ctx context.Context, in *CheckDatabaseRequest, opts ...grpc.CallOption) (*CheckDatabaseResponse, error) {
@@ -75,6 +87,7 @@ func (c *userServiceClient) Register(ctx context.Context, in *RegisterRequest, o
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
+	Healthz(context.Context, *HealthzRequest) (*HealthzResponse, error)
 	CheckDatabase(context.Context, *CheckDatabaseRequest) (*CheckDatabaseResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
@@ -88,6 +101,9 @@ type UserServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUserServiceServer struct{}
 
+func (UnimplementedUserServiceServer) Healthz(context.Context, *HealthzRequest) (*HealthzResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Healthz not implemented")
+}
 func (UnimplementedUserServiceServer) CheckDatabase(context.Context, *CheckDatabaseRequest) (*CheckDatabaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckDatabase not implemented")
 }
@@ -116,6 +132,24 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&UserService_ServiceDesc, srv)
+}
+
+func _UserService_Healthz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HealthzRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).Healthz(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_Healthz_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).Healthz(ctx, req.(*HealthzRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_CheckDatabase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -179,6 +213,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "user.v1.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Healthz",
+			Handler:    _UserService_Healthz_Handler,
+		},
 		{
 			MethodName: "CheckDatabase",
 			Handler:    _UserService_CheckDatabase_Handler,

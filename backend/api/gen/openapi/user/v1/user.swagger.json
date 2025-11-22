@@ -38,6 +38,28 @@
         ]
       }
     },
+    "/api/v1/healthz": {
+      "get": {
+        "operationId": "UserService_Healthz",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1HealthzResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
     "/api/v1/login": {
       "post": {
         "operationId": "UserService_Login",
@@ -136,6 +158,14 @@
       "type": "object",
       "properties": {
         "dbStatus": {
+          "type": "string"
+        }
+      }
+    },
+    "v1HealthzResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
           "type": "string"
         }
       }

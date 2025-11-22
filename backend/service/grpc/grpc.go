@@ -9,6 +9,12 @@ import (
 	"github.com/nikola-enter21/devops-fmi-course/config"
 )
 
+func (s *Server) Healthz(ctx context.Context, _ *user.HealthzRequest) (*user.HealthzResponse, error) {
+	return &user.HealthzResponse{
+		Status: "ok",
+	}, nil
+}
+
 func (s *Server) Login(ctx context.Context, req *user.LoginRequest) (*user.LoginResponse, error) {
 	return &user.LoginResponse{
 		Token: "Login successful",

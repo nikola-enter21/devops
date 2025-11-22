@@ -8,6 +8,10 @@ import "google/api/annotations.proto";
 option go_package = "github.com/nikola-enter21/devops-fmi-course/api/proto/gen/go/user/v1;user";
 
 service UserService {
+  rpc Healthz(HealthzRequest) returns (HealthzResponse) {
+    option (google.api.http) = {get: "/api/v1/healthz"};
+  }
+
   rpc CheckDatabase(CheckDatabaseRequest) returns (CheckDatabaseResponse) {
     option (google.api.http) = {get: "/api/v1/checkDatabase"};
   }
@@ -25,6 +29,11 @@ service UserService {
       body: "*"
     };
   }
+}
+
+message HealthzRequest {}
+message HealthzResponse {
+  string status = 1;
 }
 
 message CheckDatabaseRequest {}
