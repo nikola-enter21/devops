@@ -5,6 +5,7 @@ Google Cloud Platform (GCP), Next.js, Go, PostgreSQL (Cloud SQL), Kubernetes (GK
 ---
 
 ### Desired Architecture (WIP)
+
 ![Architecture](./backend_diagram.png)
 
 ---
@@ -153,7 +154,8 @@ The script `local_k8.sh` automates the local setup:
 
 ---
 
-## Deployment 
+## Deployment
+
 - Automated with Github Actions
 
 ## GKE and Cloud SQL Setup
@@ -187,8 +189,11 @@ The script `local_k8.sh` automates the local setup:
 
 - Add **Horizontal Pod Autoscaling (HPA)**
 - Deploy **ArgoCD for GitOps** automation
-- Integrate **Ambient Service Mesh**
-- Extend **monitoring & observability**
+  - Add a staging environment
+  - Every PR will deploy to staging first
+  - If everything looks good, promote to production
+- Integrate **Istio Ambient Mesh** or **Cilium Service Mesh** (both eBPF-based, sidecar-less)
+- Add Grafana Alloy, Tetragon, and Hubble for eBPF-powered observability and security
 
 ---
 
