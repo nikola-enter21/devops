@@ -42,17 +42,6 @@ resource "google_container_cluster" "primary" {
   logging_config {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
-
-  network_policy {
-    enabled = true # Whether network policy is enabled on the cluster
-  }
-
-  addons_config {
-    # This must be enabled in order to enable network policy for the nodes
-    network_policy_config {
-      disabled = false
-    }
-  }
 }
 
 resource "google_container_node_pool" "primary_nodes" {
