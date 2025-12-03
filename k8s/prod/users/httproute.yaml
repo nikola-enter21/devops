@@ -5,6 +5,7 @@ metadata:
 spec:
   parentRefs:
     - name: gopherify-gateway
+      namespace: gateways-prod
   hostnames:
     - "api.users.gopherify.com"
   rules:

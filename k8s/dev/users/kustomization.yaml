@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: users-dev
+
+resources:
+  - ../../base/users
+  - namespace.yaml
+  - ingress.yaml
+  - postgres/postgres-deployment.yaml
+  - postgres/postgres-service.yaml
+  - job-users-migrator.yaml
+
+patches:
+  - path: patches/deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: users-deployment
+
+secretGenerator:
+  - name: users-db-secret
+    literals:
+      - DB_HOST=postgres.users-dev.svc.cluster.local
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+
+generatorOptions:
+  disableNameSuffixHash: true
