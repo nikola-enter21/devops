@@ -9,3 +9,13 @@ resources:
   - httproute.yaml
   - backendpolicy.yaml
   - healthcheckpolicy.yaml
+
+patches:
+  - path: patches/namespace-patch.yaml
+    target:
+      kind: Namespace
+      name: gopherify
+  - path: patches/deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: users-deployment

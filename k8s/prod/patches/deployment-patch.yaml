@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  template:
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: users
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

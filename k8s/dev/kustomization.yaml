@@ -11,6 +11,10 @@ resources:
   - job-users-migrator.yaml
 
 patches:
+  - path: patches/namespace-patch.yaml
+    target:
+      kind: Namespace
+      name: gopherify
   - path: patches/deployment-patch.yaml
     target:
       kind: Deployment
@@ -18,7 +22,6 @@ patches:
 
 secretGenerator:
   - name: users-db-secret
-    namespace: gopherify
     literals:
       - DB_HOST=postgres.gopherify.svc.cluster.local
       - DB_PORT=5432

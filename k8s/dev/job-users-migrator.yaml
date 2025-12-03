@@ -2,7 +2,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: users-migrator
-  namespace: gopherify
   labels:
     app: users-migrator
 spec:
