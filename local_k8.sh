@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NAMESPACE="gopherify"
+NAMESPACE="users-dev"
 IMAGE_NAME="users:local"
 
 echo "Starting local Kubernetes dev environment..."

@@ -2,7 +2,6 @@ apiVersion: networking.gke.io/v1
 kind: HealthCheckPolicy
 metadata:
   name: users-healthcheck
-  namespace: gopherify
 spec:
   default:
     checkIntervalSec: 5

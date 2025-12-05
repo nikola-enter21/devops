@@ -13,7 +13,7 @@ import (
 	"github.com/nikola-enter21/devops-fmi-course/authorizer"
 	"github.com/nikola-enter21/devops-fmi-course/gateway"
 	"github.com/nikola-enter21/devops-fmi-course/logging"
-	db "github.com/nikola-enter21/devops-fmi-course/service/db/gen"
+	"github.com/nikola-enter21/devops-fmi-course/service/db/repo"
 	"google.golang.org/grpc"
 	health "google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -25,15 +25,11 @@ var (
 	log = logging.MustNewLogger()
 )
 
-type UserRepository interface {
-	GetByID(ctx context.Context, id int64) (db.User, error)
-}
-
 type Server struct {
 	user.UnimplementedUserServiceServer
 
 	Authorizer     authorizer.Authorizer
-	UserRepository UserRepository
+	UserRepository repo.UserRepository
 }
 
 func (s *Server) Serve(signalCtx context.Context, httpPort, grpcPort string) {
