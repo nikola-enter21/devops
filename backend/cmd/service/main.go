@@ -9,7 +9,7 @@ import (
 	"github.com/nikola-enter21/devops-fmi-course/authorizer"
 	"github.com/nikola-enter21/devops-fmi-course/config"
 	"github.com/nikola-enter21/devops-fmi-course/logging"
-	"github.com/nikola-enter21/devops-fmi-course/service/db/repo"
+	"github.com/nikola-enter21/devops-fmi-course/service/db/postgres"
 	"github.com/nikola-enter21/devops-fmi-course/service/grpc"
 )
 
@@ -38,7 +38,7 @@ func main() {
 
 	s := &grpc.Server{
 		Authorizer:     auth,
-		UserRepository: repo.NewUserRepository(pool),
+		UserRepository: postgres.NewUserRepository(pool),
 	}
 
 	s.Serve(signalCtx, httpPort, grpcPort)
