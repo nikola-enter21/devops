@@ -19,4 +19,6 @@ spec:
           networking.gke.io/pre-shared-certs: mcrt-22257303-85f3-40d7-8213-bd8512f5c5ba
       allowedRoutes:
         namespaces:
-          from: All
+          selector:
+            matchLabels:
+              domain: users
