@@ -1,7 +1,6 @@
 variable "name_prefix" {
   description = "Prefix for naming all resources"
   type        = string
-  default     = "devops-fmi-course"
 }
 
 variable "project_id" {
@@ -10,14 +9,12 @@ variable "project_id" {
 }
 
 variable "region" {
-  type    = string
-  default = "europe-west4"
+  type = string
 }
 
 variable "zone" {
   type        = string
   description = "GCP zone (within region)"
-  default     = "europe-west4-a"
 }
 
 variable "db_password" {

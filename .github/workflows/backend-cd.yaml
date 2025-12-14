@@ -13,12 +13,12 @@ permissions:
   contents: read
 
 env:
-  GCP_PROJECT_ID: devops-fmi-course-476112
+  GCP_PROJECT_ID: devops-fmi-course-2025
   GCP_ZONE: europe-west4-a
-  GCP_CLUSTER: devops-fmi-course-gke
-  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/632982591699/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions
-  GCP_SA_EMAIL: github-terraform-deployer@devops-fmi-course-476112.iam.gserviceaccount.com
-  IMAGE_REPO: europe-west4-docker.pkg.dev/devops-fmi-course-476112/devops-fmi-course-repo/backend-app
+  GCP_CLUSTER: devops-fmi-course-2025-gke
+  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/984999448876/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions
+  GCP_SA_EMAIL: github-terraform-deployer@devops-fmi-course-2025.iam.gserviceaccount.com
+  IMAGE_REPO: europe-west4-docker.pkg.dev/devops-fmi-course-2025/devops-fmi-course-2025-repo/backend-app
 
 jobs:
   deploy:
