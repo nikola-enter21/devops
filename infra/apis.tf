@@ -8,17 +8,15 @@ resource "google_project_service" "apis" {
     "cloudresourcemanager.googleapis.com", # Projects, folders, org policies
     "serviceusage.googleapis.com",         # Allows enabling/disabling other APIs
 
-    # CI/CD & Artifacts
-    "run.googleapis.com",              # Cloud Run for serverless workloads
-    "artifactregistry.googleapis.com", # Container and artifact registry
-    "cloudbuild.googleapis.com",       # Cloud Build for CI/CD pipelines
+    # Artifacts
+    "artifactregistry.googleapis.com",
 
-    # Networking & DNS
-    "vpcaccess.googleapis.com", # Serverless VPC access connectors
-    "dns.googleapis.com",       # Cloud DNS for public/private zones
+    # Networking
+    "vpcaccess.googleapis.com",         # Serverless VPC access connectors
+    "servicenetworking.googleapis.com", # Private VPC access to Google-managed services
 
     # Database
-    "sqladmin.googleapis.com", # Cloud SQL Admin API
+    "sqladmin.googleapis.com",
 
     # Gateway API + Managed Certificates
     "certificatemanager.googleapis.com", # Cloud Certificate Manager (SSL/TLS certs)
