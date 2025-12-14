@@ -15,7 +15,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: users
-          image: europe-west4-docker.pkg.dev/devops-fmi-course-2025/devops-fmi-course-repo/backend-app
+          image: europe-west4-docker.pkg.dev/devops-fmi-course-2025/devops-fmi-course-2025-repo/backend-app
           ports:
             - name: http
               containerPort: 8080
